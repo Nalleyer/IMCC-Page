@@ -1,16 +1,21 @@
 <template>
-  <v-tabs height="60" app fixed-tabs dark>
-    <div class="header-title">IMCC</div>
-    <v-spacer></v-spacer>
-    <v-tab
-    v-for="(item, index) in items"
-    :key="index"
-    width="80"
-    :to="item.router"
+  <v-toolbar dark tabs height="64" app fixed
+    scroll-off-screen
+    scroll-threshold="0"
     >
+    <v-tabs height="64" fixed-tabs dark>
+      <div class="header-title">IMCC</div>
+      <v-spacer></v-spacer>
+      <v-tab
+      v-for="(item, index) in items"
+      :key="index"
+      width="80"
+      :to="item.router"
+      >
       {{ item.name }}
     </v-tab>
   </v-tabs>
+</v-toolbar>
 </template>
 
 <script>
@@ -47,6 +52,10 @@ export default {
   font-family: 'Monoton', cursive;
   margin-left: 10px;
   padding-top: 6px;
+}
+.v-toolbar__content {
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 </style>

@@ -3,7 +3,7 @@
     <v-app id="inside">
       <mheader></mheader>
       <v-content>
-        <router-view> oh no </router-view>
+        <router-view id="main"> oh no </router-view>
       </v-content>
     </v-app>
   </div>
@@ -46,5 +46,9 @@ export default {
 
 body {
   margin: 0px;
+}
+
+#main {
+  margin-top: -64px;
 }
 </style>
