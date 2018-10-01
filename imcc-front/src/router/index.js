@@ -8,16 +8,16 @@ Vue.use(Router)
 export default new Router({
   routes: [
     {
-      path: "/",
-      redirect: "/main"
-    },
-    {
       path: "/upload",
       component: upload,
     },
     {
       path: "/main",
       component: main,
+    },
+    {
+      path: "/",
+      redirect: "/main"
     },
   ]
 })

@@ -31,9 +31,12 @@ import            Database.Persist.Sqlite       hiding (get)
 import qualified  Database.Persist.Sqlite       as PS
 import            Database.Persist.TH
 
-type Api = SpockM SqlBackend () () ()
+data MySession = MySession {
+  getValue :: Int
+}
 
-type ApiAction a = SpockAction SqlBackend () () a
+type Api = SpockM SqlBackend MySession () ()
+type ApiAction a = SpockAction SqlBackend MySession () a
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Paper json
@@ -45,7 +48,7 @@ Paper json
 main :: IO ()
 main = do
   pool <- runStdoutLoggingT $ createSqlitePool "api.db" 5
-  spockCfg <- defaultSpockCfg () (PCPool pool)()
+  spockCfg <- defaultSpockCfg (MySession 233) (PCPool pool)()
   runStdoutLoggingT $ runSqlPool (runMigration migrateAll) pool
   runSpock 8080 (spock spockCfg app)
 
@@ -67,6 +70,14 @@ app = do
     liftIO $ print outPath
     liftIO $ B.writeFile outPath content
     succJson $ uf_name pdf
+  get "debug" $ do
+    s <- getSessionId
+    liftIO $ print s
+    ms <- readSession
+    let msv = getValue ms
+    liftIO $ print msv
+    writeSession (MySession $ msv + 1)
+    succJson (pack . show $ msv)
 
 runSQL
   :: (HasSpock m, SpockConn m ~ SqlBackend)
