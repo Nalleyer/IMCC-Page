@@ -1,20 +1,20 @@
 <template>
   <v-toolbar dark tabs height="64" app fixed
     v-scroll="onScroll"
-    :class="{'transparent': isOnTopTForColor}"
+    :class="{'transparent': isOnTopTForColor && isMainPage}"
     :style="style"
   >
     <v-tabs height="64" fixed-tabs
       color="transparent"
     >
-    <div class="header-title" :class="{'top': isOnTopT}">IMCC</div>
+    <div class="header-title" :class="{'top': isOnTopT && isMainPage}">IMCC</div>
       <v-spacer></v-spacer>
       <v-tab
       v-for="(item, index) in items"
       :key="index"
       width="80"
       :to="item.router"
-      :class="{'tab-transparent': isOnTopTForColor}"
+      :class="{'tab-transparent': isOnTopTForColor && isMainPage}"
       >
       {{ item.name }}
     </v-tab>
@@ -26,7 +26,6 @@
 export default {
   data() {
     return {
-      activeIndex: "1",
       items: [
         {
           name: "首页",
@@ -64,6 +63,12 @@ export default {
     isOnTop: function() {
       return this.offsetTop < 1
     },
+    isMainPage: function() {
+      // console.log(this.$route.path);
+      // console.log(this.items[0].router);
+      console.log(this.$route.path == this.items[0].router);
+      return this.$route.path == this.items[0].router;
+    }
   },
   methods: {
     onScroll(e) {
@@ -105,11 +110,11 @@ export default {
 }
 
 .top {
-  color: #999;
+  color: #fff;
 }
 
 .tab-transparent > a {
-  color: #333;
+  color: #fff;
 }
 
 </style>

@@ -41,4 +41,8 @@ export default {
   height: 800px;
 }
 
+video {
+  filter: brightness(60%);
+}
+
 </style>
