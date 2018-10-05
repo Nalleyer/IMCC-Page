@@ -1,7 +1,8 @@
 <template lang="html">
   <div>
     <div class="main-section">
-      <img src="@/assets/imcc_fog.png" alt="tmp" width="100%">
+      <video-bg :sources="[vbg]" :img="bg">
+      </video-bg>
     </div>
     <div class="main-section">IMCC Oh yeah</div>
     <div class="main-section">2</div>
@@ -13,9 +14,13 @@
 </template>
 
 <script>
+import VideoBg from 'vue-videobg'
+
 export default {
   data() {
     return {
+      bg: require("@/assets/imcc_fog.png"),
+      vbg : require("@/assets/imcc_fog.mp4"),
     }
   },
   created() {
@@ -23,6 +28,9 @@ export default {
   mounted() {
   },
   methods: {
+  },
+  components: {
+    VideoBg,
   }
 }
 </script>
