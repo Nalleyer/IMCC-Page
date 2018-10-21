@@ -34,7 +34,7 @@ export default {
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css?family=Monoton');
+@import url('https://fonts.googleapis.com/css?family=Lato:100|Monoton|Muli|Noto+Sans|Open+Sans:300');
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
