@@ -53,7 +53,22 @@
       </v-layout>
     </v-container>
 
-    <div class="main-section">3</div>
+    <!-- <v-img :src="newhomeBg" width="100%" class="dim"> -->
+    <div id="newhome-bg"
+      :style="{ 'background-image': 'url(' + require('@/assets/newhome.jpg') + ')', 'background-size': 'contain' }">
+      <v-container mx-0 px-0 class="main-section full-height">
+        <v-layout align-start justify-start class="full-height">
+          <v-layout mt-5 align-start column>
+            <v-flex py-3 my-2 ml-5 > <h1 class="title-1">IMCC 2018</h1> </v-flex>
+            <v-flex ml-5> <h2 class="title-h2 left white-text">
+              将于<br>12月25日在<br>新家市圣诞路0号 举行
+            </h2> </v-flex>
+          </v-layout>
+        </v-layout>
+      </v-container>
+    </div>
+    <!-- </v-img> -->
+
     <div class="main-section">4</div>
     <div class="main-section">5</div>
   </div>
@@ -71,6 +86,7 @@ export default {
       redstoneBg: require("@/assets/redstone.jpg"),
       treeBg: require("@/assets/tree.jpg"),
       tcBg: require("@/assets/tc.jpg"),
+      newhomeBg: require("@/assets/newhome.jpg"),
 
       cardImgSize: 400,
     }
@@ -101,6 +117,10 @@ video {
   filter: brightness(60%);
 }
 
+.dim {
+  filter: brightness(60%);
+}
+
 .parent {
   display: flex;
   flex-wrap: wrap;
@@ -119,6 +139,15 @@ video {
   font-size: 28px;
   font-family: 'Lato', "华文细黑", sans-serif;
   margin: 16px;
+}
+
+.white-text {
+  color: #fff;
+}
+
+.left {
+  margin-left: 0px;
+  text-align: left;
 }
 
 .title-1 {
@@ -141,6 +170,10 @@ video {
   width: 400px;
   word-wrap: break-word;
   line-height: 1.8;
+}
+
+#newhome-bg {
+  height: 1440px;
 }
 
 </style>
