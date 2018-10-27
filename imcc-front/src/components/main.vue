@@ -53,15 +53,15 @@
       </v-layout>
     </v-container>
 
-    <!-- <v-img :src="newhomeBg" width="100%" class="dim"> -->
     <div id="newhome-bg"
-      :style="{ 'background-image': 'url(' + require('@/assets/newhome.jpg') + ')', 'background-size': 'contain' }">
+      :style="{ 'background-image': 'url(' + require('@/assets/newhome.jpg') + ')', 'background-size': 'cover' }">
       <v-container mx-0 px-0 class="main-section full-height">
         <v-layout align-start justify-start class="full-height">
           <v-layout mt-5 align-start column>
             <v-flex py-3 my-2 ml-5 > <h1 class="title-1">IMCC 2018</h1> </v-flex>
             <v-flex ml-5> <h2 class="title-h2 left white-text">
-              将于<br>12月25日在<br>新家市圣诞路0号 举行
+              将于<br>12月25日在<br>新家市圣诞路0号 举行 <br><br>
+              <small>欢迎各界人士积极参与</small>
             </h2> </v-flex>
           </v-layout>
         </v-layout>
@@ -69,9 +69,38 @@
     </div>
     <!-- </v-img> -->
 
-    <div class="main-section">4</div>
-    <div class="main-section">5</div>
-  </div>
+    <v-container my-5>
+
+    </v-container>
+
+    <v-footer height="auto">
+      <v-card flat tile class="grey darken-3 white--text text-xs-center full-width">
+        <v-card-text>
+          <v-btn
+          v-for="icon in icons"
+          :key="icon"
+          class="mx-3 white--text"
+          icon
+          large
+          @click="OnFooterBtnClick(icon)"
+          :href="icon.link"
+          >
+          <v-icon size="30px">{{ icon.asset }}</v-icon>
+        </v-btn>
+      </v-card-text>
+
+      <v-card-text class="white--text pt-0">
+        不知道为什么下面写一些字就会显得网页更专业一些，所以我也写了一些字在这里。
+      </v-card-text>
+
+      <v-divider></v-divider>
+
+      <v-card-text class="white--text">
+        &copy;2018 — <strong>Nalley</strong>
+      </v-card-text>
+    </v-card>
+  </v-footer>
+</div>
 
 </template>
 
@@ -89,6 +118,23 @@ export default {
       newhomeBg: require("@/assets/newhome.jpg"),
 
       cardImgSize: 400,
+      icons: [
+        {
+            asset: 'fab fa-google-plus',
+            id: 0,
+            link: "https://plus.google.com/u/0/+NalleyerInoru",
+        },
+        {
+            asset: 'far fa-envelope',
+            id: 1,
+            link: "mailto:nalleyer@gmail.com",
+        },
+        {
+            asset: 'fab fa-mastodon',
+            id: 2,
+            link: "https://pawoo.net/web/accounts/191271",
+        },
+      ],
     }
   },
   created() {
@@ -96,6 +142,9 @@ export default {
   mounted() {
   },
   methods: {
+    OnFooterBtnClick(icon) {
+      console.log(icon.link)
+    }
   },
   components: {
     VideoBg,
@@ -128,6 +177,10 @@ video {
 
 .full-height {
   height: 100%;
+}
+
+.full-width {
+  width: 100%;
 }
 
 .title-h1 {
@@ -173,7 +226,8 @@ video {
 }
 
 #newhome-bg {
-  height: 1440px;
+  width: 100%;
+  height: 1080px;
 }
 
 </style>

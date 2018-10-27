@@ -23,6 +23,8 @@
     "not ie <= 8"
   ],
   "devDependencies": {
+    "@fortawesome/fontawesome-free": "^5.4.2",
+    "@mdi/font": "^3.0.39",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.0",
@@ -30,6 +32,8 @@
     "cross-env": "^5.0.5",
     "css-loader": "^0.28.7",
     "file-loader": "^1.1.4",
+    "font-awesome": "^4.7.0",
+    "material-design-icons-iconfont": "^3.0.3",
     "vue-loader": "^13.0.5",
     "vue-template-compiler": "^2.4.4",
     "webpack": "^3.6.0",
