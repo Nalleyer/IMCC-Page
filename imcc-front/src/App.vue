@@ -2,8 +2,8 @@
   <div id="app">
     <v-app id="inside">
       <mheader></mheader>
-      <v-content>
-        <router-view id="main"> oh no </router-view>
+      <v-content :class="{ 'to-top': isMain }">
+        <router-view> oh no </router-view>
       </v-content>
     </v-app>
   </div>
@@ -17,9 +17,19 @@ export default {
   components: {
     mheader
   },
+  mounted() {
+    this.$router.afterEach((to, from, next) => {
+      console.log(this.$route.path)
+    })
+  },
   data () {
     return {
       msg: 'Welcome to Your Vue.js App',
+    }
+  },
+  computed: {
+    isMain: function() {
+      return this.$route.path == "/main"
     }
   },
   methods: {
@@ -48,7 +58,7 @@ body {
   margin: 0px;
 }
 
-#main {
+.to-top {
   margin-top: -64px;
 }
 </style>

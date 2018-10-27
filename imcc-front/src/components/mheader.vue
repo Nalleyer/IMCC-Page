@@ -37,7 +37,7 @@ export default {
         },
         {
           name: "投稿",
-          router: "/submit",
+          router: "/upload",
         },
       ],
       topT: 800,
