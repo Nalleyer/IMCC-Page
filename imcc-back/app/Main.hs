@@ -15,7 +15,7 @@ module Main where
 import            Data.Aeson                    hiding (json)
 import qualified  Data.ByteString               as B
 import            Data.Monoid                   ((<>))
-import            Data.Text                     (Text, pack)
+import            Data.Text                     (Text, pack, unpack)
 import            Data.HashMap.Strict           ((!))
 import            Network.HTTP.Types.Status
 import            Network.Wai.Middleware.Static
@@ -60,15 +60,15 @@ app = do
     pdf <- liftIO $ B.readFile "Thesis.pdf"
     setHeader "Content-Type" "application/pdf"
     bytes pdf
-  post ("upload" <//> var) $ \path -> do
+  post ("api" <//> "upload") $ do
     pdfs <- files
-    liftIO $ print pdfs
+    -- liftIO $ print pdfs
     let pdf = pdfs ! "file"
-    -- liftIO $ renameDirectory (uf_tempLocation pdf) (path ++ ".pdf")
+    let path = uf_name pdf
     content <- liftIO $ B.readFile (uf_tempLocation pdf)
-    let outPath = (path ++ ".pdf")
-    liftIO $ print outPath
-    liftIO $ B.writeFile outPath content
+    let outPath = (unpack path)
+    -- liftIO $ print outPath
+    -- liftIO $ B.writeFile outPath content
     succJson $ uf_name pdf
   get "debug" $ do
     s <- getSessionId
