@@ -3,8 +3,11 @@
     <v-card class="form" with="800">
       <v-flex mx-4 my-5 px-1 py-5>
         <v-form method="post" action="/api/upload" ref="form" v-model="valid">
+          <v-select :items="categories" item-text="name" v-model="category" return-object label="请选择版块"/>
           <v-text-field v-model="title" :rules="titleRules" :counter="titleLen"
             label="标题" required />
+          <v-text-field v-model="auther" :rules="autherRules" :counter="autherLen"
+            label="作者" required />
           <v-textarea v-model="abstract" :rules="abstractRules" :counter="abstractLen"
             label="摘要" required/>
           <v-layout>
@@ -51,6 +54,12 @@ export default {
         v => !!v || '标题不能为空',
         v => v.length <= this.titleLen || '标题最多50字',
       ],
+      auther: '',
+      autherLen: 10,
+      autherRules: [
+        v => !!v || '作者不能为空',
+        v => v.length <= this.autherLen || '作者名最多10字',
+      ],
       abstract: '',
       abstractLen: 500,
       abstractRules: [
@@ -66,6 +75,20 @@ export default {
       ],
       fileInfo: null,
       maxFileMb: 50,
+      category: null,
+      categories: [
+        { name: "科学技术",
+          id: 0,
+        },
+        {
+          name: "建筑艺术",
+          id: 1,
+        },
+        {
+          name: "周边创作",
+          id: 2,
+        }
+      ],
     }
   },
   computed: {
@@ -147,9 +170,11 @@ export default {
       }
       let formData = new FormData()
       formData.append("title", this.title)
+      formData.append("auther", this.auther)
       formData.append("abstract", this.abstract)
       formData.append("keywords", this.keywordsFormData)
       formData.append("file", this.fileInfo)
+      formData.append("category", this.category.id)
       this.$http.post('/api/upload', formData, {
         'Content-Type': 'Multipart/form-data',
       }).then(resp => {

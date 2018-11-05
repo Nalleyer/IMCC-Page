@@ -15,13 +15,16 @@ module Main where
 import            Data.Aeson                    hiding (json)
 import qualified  Data.ByteString               as B
 import            Data.Monoid                   ((<>))
+import            Data.List.Split               (splitOn)
 import            Data.Text                     (Text, pack, unpack)
+import            Data.Time
 import            Data.HashMap.Strict           ((!))
 import            Network.HTTP.Types.Status
 import            Network.Wai.Middleware.Static
 import            Web.Spock
 import            Web.Spock.Config
 import            System.Directory
+import            System.FilePath               ((</>))
 
 import            Control.Monad.IO.Class        (liftIO)
 import            Control.Monad.Logger          (LoggingT, runStdoutLoggingT)
@@ -35,18 +38,27 @@ data MySession = MySession {
   getValue :: Int
 }
 
+thesisPath = "thesis"
+
 type Api = SpockM SqlBackend MySession () ()
 type ApiAction a = SpockAction SqlBackend MySession () a
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Paper json
-  name Text
+  title Text
   auther Text
+  time UTCTime
+  abstract Text
+  keywords [Text]
+  categary Int
   deriving Show
+Categary json
+  name Text
 |]
 
 main :: IO ()
 main = do
+  createDirectoryIfMissing True thesisPath
   pool <- runStdoutLoggingT $ createSqlitePool "api.db" 5
   spockCfg <- defaultSpockCfg (MySession 233) (PCPool pool)()
   runStdoutLoggingT $ runSqlPool (runMigration migrateAll) pool
@@ -63,13 +75,33 @@ app = do
   post ("api" <//> "upload") $ do
     pdfs <- files
     -- liftIO $ print pdfs
-    let pdf = pdfs ! "file"
-    let path = uf_name pdf
-    content <- liftIO $ B.readFile (uf_tempLocation pdf)
-    let outPath = (unpack path)
-    -- liftIO $ print outPath
-    -- liftIO $ B.writeFile outPath content
-    succJson $ uf_name pdf
+    ps <- params
+    let mTitle = lookup "title" ps
+    let mAbstract = lookup "abstract" ps
+    let mAuther = lookup "auther" ps
+    let mKeywords = lookup "keywords" ps
+    let mCategory = lookup "category" ps
+    case (mTitle, mAbstract, mAuther, mKeywords, mCategory) of
+      (Just title, Just abstract, Just auther, Just keywordsStr, Just categoryStr) -> do
+        -- liftIO $ print title
+        -- liftIO $ print abstract
+        let keywords = map pack $ splitKeyWords $ unpack keywordsStr
+        let category = read $ unpack categoryStr :: Int
+        liftIO $ print category
+        zonedTime <- liftIO getZonedTime
+        let paper = Paper title auther (zonedTimeToUTC zonedTime) abstract keywords category
+        id <- runSQL $ insert $ paper
+
+        let pdf = pdfs ! "file"
+        let outPath = thesisPath </> (show (PS.fromSqlKey id) ++ ".pdf")
+        content <- liftIO $ B.readFile (uf_tempLocation pdf)
+        -- liftIO $ print outPath
+        liftIO $ B.writeFile outPath content
+        succJson $ pack $ show id
+      _ -> do
+        setStatus status400
+        errorJson 3 "invalid post"
+
   get "debug" $ do
     s <- getSessionId
     liftIO $ print s
@@ -93,8 +125,7 @@ errorJson code message = json $ object
 
 succJson :: Text -> ApiAction ()
 succJson msg = json $ object
-  [
-    "result" .= String "success"
+  [ "result" .= String "success"
   , "message" .= msg
   ]
 
@@ -102,3 +133,5 @@ notFound :: Status -> ApiAction()
 notFound status = do
   setStatus status
   errorJson 2 "person id not found"
+
+splitKeyWords ks = splitOn ";" ks

@@ -3,3 +3,5 @@ static/
 imcc-back.cabal
 *~
 *.db
+*.db-*
+thesis/
