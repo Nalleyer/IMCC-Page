@@ -10,13 +10,10 @@
             label="作者" required />
           <v-textarea v-model="abstract" :rules="abstractRules" :counter="abstractLen"
             label="摘要" required/>
-          <v-layout>
-            <v-text-field v-for="(keyword, i) in keywords"
-              :key="i"
-              v-model="keyword.text" :rules="keywordsRules" :counter="keywordLen"
-              @blur="OnKeywordBlur(i)"
-              label="关键字" required/>
-          </v-layout>
+          <keywords
+            :keywordList="keywords"
+          >
+          </keywords>
           <v-layout>
           <h2>上传论文文件（PDF格式）：</h2>
           <upload-btn large color="black" title=""
@@ -42,6 +39,7 @@
 
 <script>
 import UploadButton from 'vuetify-upload-button';
+import keywords from './keywords';
 export default {
   data() {
     return {
@@ -66,13 +64,7 @@ export default {
         v => !!v || '摘要不能为空',
         v => v.length <= this.abstractLen || '摘要最多500字',
       ],
-      keywordLen: 4,
-      maxKeywords: 5,
       keywords : [],
-      keywordsRules: [
-        v => v.length <= this.keywordLen || '关键字最多4字',
-        v => /^[^; ]*$/.test(v) || '关键字请不要包含英文分号 \';\' 或空格',
-      ],
       fileInfo: null,
       maxFileMb: 50,
       category: null,
@@ -92,15 +84,6 @@ export default {
     }
   },
   computed: {
-    numFilledKeyword: function() {
-      let result = 0
-      for (let i = 0; i < this.keywords.length; i++) {
-        if (this.keywords[i].text.length > 0) {
-          result++
-        }
-      }
-      return result
-    },
     fileOkText: function() {
       if (this.fileInfo == null) {
         return "未上传文件"
@@ -120,47 +103,10 @@ export default {
       return this.keywords.map(x => x.text).filter(x => x != "").join(';')
     },
   },
-  mounted() {
-    this.addKeywordInput(0, true)
-  },
   methods: {
     OnFileChanged(file) {
       console.log(file)
       this.fileInfo = file
-    },
-    addKeywordInput(i, force) {
-      if (!force && i > this.keywords.length) {
-        return
-      }
-      this.keywords.push({
-        text: '',
-      })
-    },
-    OnKeywordBlur(i) {
-      let keyword = this.keywords[i]
-      if (keyword.text.length > 0) {
-        if (this.keywords.length < this.maxKeywords && i == this.keywords.length - 1) {
-          this.addKeywordInput(i + 1)
-        }
-      }
-      else if (this.keywords.length > 1) {
-        let toDel = -1
-        for (let j = i; j < this.keywords.length; j++) {
-          if (j >= this.keywords.length - 1) {
-            toDel = j
-          }
-          else {
-            this.keywords[j].text = this.keywords[j+1].text
-          }
-        }
-        let len = this.keywords.length
-        if (len == this.maxKeywords && toDel == len - 1) {
-          this.keywords[len - 1].text = ""
-        }
-        else {
-          this.keywords.splice(toDel, 1)
-        }
-      }
     },
     submit() {
       let ok = this.$refs.form.validate() && this.fileOk
@@ -186,6 +132,7 @@ export default {
   },
   components: {
     'upload-btn': UploadButton,
+    'keywords': keywords,
   }
 }
 </script>
