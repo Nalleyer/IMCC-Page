@@ -40,6 +40,7 @@
 <script>
 import UploadButton from 'vuetify-upload-button';
 import keywords from './keywords';
+import {imccGlobal} from '../lib/global.js'
 export default {
   data() {
     return {
@@ -68,19 +69,7 @@ export default {
       fileInfo: null,
       maxFileMb: 50,
       category: null,
-      categories: [
-        { name: "科学技术",
-          id: 0,
-        },
-        {
-          name: "建筑艺术",
-          id: 1,
-        },
-        {
-          name: "周边创作",
-          id: 2,
-        }
-      ],
+      categories: imccGlobal.categories,
     }
   },
   computed: {
@@ -120,7 +109,7 @@ export default {
       formData.append("abstract", this.abstract)
       formData.append("keywords", this.keywordsFormData)
       formData.append("file", this.fileInfo)
-      formData.append("category", this.category.id)
+      formData.append("category", this.category.name)
       this.$http.post('/api/upload', formData, {
         'Content-Type': 'Multipart/form-data',
       }).then(resp => {
