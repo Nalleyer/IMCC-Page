@@ -14,6 +14,7 @@ module Main where
 
 import            Data.Aeson                    hiding (json)
 import qualified  Data.ByteString               as B
+import            Data.Maybe                    (catMaybes)
 import            Data.Monoid                   ((<>))
 import            Data.List.Split               (splitOn)
 import            Data.Text                     (Text, pack, unpack)
@@ -26,7 +27,7 @@ import            Web.Spock.Config
 import            System.Directory
 import            System.FilePath               ((</>))
 
-import            Control.Monad                 (forM_)
+import            Control.Monad                 (forM_, forM, liftM)
 import            Control.Monad.IO.Class        (liftIO)
 import            Control.Monad.Logger          (LoggingT, runStdoutLoggingT)
 import            Database.Persist              hiding (get)
@@ -85,15 +86,10 @@ app = do
   get ("api" <//> "list") $ do
     ps <- params
     liftIO $ print ps
-    -- let mTitle = lookup "title" ps
-    -- let mYear = lookup "year" ps
-    -- let mAuther = lookup "auther" ps
-    -- let mKeywords = lookup "keywords" ps
-    -- let mCategory = lookup "category" ps
-    -- let filter = makeFilter ps
-    -- papers <- runSQL $ selectList filter []
+    filter <- makeFilter ps
+    papers <- runSQL $ selectList filter []
     -- liftIO $ print papers
-    succJson (pack "list")
+    json papers
   post ("api" <//> "upload") $ do
     pdfs <- files
     -- liftIO $ print pdfs
@@ -102,7 +98,7 @@ app = do
       Just (title, abstract, auther, keywordsStr, categoryStr) -> do
         let keywords = map pack $ splitKeyWords $ unpack keywordsStr
         let category = categoryStr
-        cId <- runSQL $ insert' (UniqueCategory $ category) (Category category)
+        cId <- runSQL $ insert' (UniqueCategory category) (Category category)
         zonedTime <- liftIO getZonedTime
         let (year, month, day) = utctGregorian (zonedTimeToUTC zonedTime)
         let paper = Paper title auther (fromInteger year) month day abstract cId
@@ -140,17 +136,32 @@ insert' uniqueField val = do
     Just (Entity key value) -> return key
     Nothing -> insert val
 
-makeFilter ps = makeFilter' ps []
-  where
-    makeFilter' [] f = f
-    makeFilter' ((key, value):xs) f = makeFilter' xs $ makeAFilter key value ++ f
-    makeAFilter key value =
-      case key of
-      "category" -> [PaperCategoryId ==. (read $ unpack value)]
-      "year"     -> [PaperYear ==. (read $ unpack value)]
-      "auther"   -> [PaperAuther ==. value]
-      -- "keywords" -> []
-      _          -> []
+getKey uniqueField = do
+  mKv <- getBy uniqueField
+  case mKv of
+    Just (Entity key value) -> return $ Just key
+    Nothing -> return Nothing
+
+makeFilter ps = do
+  filterList <- forM ps makeAFilter
+  return $ foldr (++) [] filterList
+    where
+      makeAFilter ("year", value) = return [PaperYear ==. (read $ unpack value)]
+      makeAFilter ("auther", value) = return [PaperAuther ==. value]
+      makeAFilter ("category", value) = do
+        mCKey <- runSQL $ getKey (UniqueCategory value)
+        case mCKey of
+          Just cId -> return [PaperCategoryId ==. cId]
+          Nothing -> return []
+      makeAFilter ("keywords", keywords) = do
+        let splited = splitKeyWords $ unpack keywords
+        kids <- catMaybes `liftM` (forM splited $ \k -> runSQL $ getKey (UniqueKeyword $ pack k))
+        k2ps <- runSQL $ selectList [P2KKId <-. kids] []
+        let pids = map (\(Entity key (P2K pId kId)) -> pId) k2ps
+        return [PaperId <-. pids]
+      makeAFilter _ = return []
+
+
 
 parseUploadPs ps =
   let mTitle = lookup "title" ps
