@@ -2,7 +2,7 @@
   <v-container id="upload">
     <v-card class="form" with="800">
       <v-flex mx-4 my-5 px-1 py-5>
-        <v-form method="post" action="/api/upload" ref="form" v-model="valid">
+        <v-form ref="form" v-model="valid">
           <v-select :items="categories" item-text="name" v-model="category" return-object label="请选择版块"/>
           <v-text-field v-model="title" :rules="titleRules" :counter="titleLen"
             label="标题" required />
@@ -12,8 +12,8 @@
             label="摘要" required/>
           <keywords
             :keywordList="keywords"
-          >
-          </keywords>
+            ref="keywords"
+          />
           <v-layout>
           <h2>上传论文文件（PDF格式）：</h2>
           <upload-btn large color="black" title=""
@@ -88,9 +88,6 @@ export default {
       // use "" as valid flag
       return this.fileOkText == ""
     },
-    keywordsFormData: function() {
-      return this.keywords.map(x => x.text).filter(x => x != "").join(';')
-    },
   },
   methods: {
     OnFileChanged(file) {
@@ -107,7 +104,7 @@ export default {
       formData.append("title", this.title)
       formData.append("auther", this.auther)
       formData.append("abstract", this.abstract)
-      formData.append("keywords", this.keywordsFormData)
+      formData.append("keywords", this.$refs.keywords.splitKeyWords)
       formData.append("file", this.fileInfo)
       formData.append("category", this.category.name)
       this.$http.post('/api/upload', formData, {

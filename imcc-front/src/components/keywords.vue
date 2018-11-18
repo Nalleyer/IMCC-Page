@@ -1,13 +1,11 @@
 <template>
-  <v-container>
-    <v-layout>
-      <v-text-field v-for="(keyword, i) in keywordList"
-        :key="i"
-        v-model="keyword.text" :rules="keywordsRules" :counter="strLen"
-        @blur="OnKeywordBlur(i)"
-        :label="label" required/>
-    </v-layout>
-  </v-container>
+  <v-layout>
+    <v-text-field v-for="(keyword, i) in keywordList"
+    :key="i"
+    v-model="keyword.text" :rules="keywordsRules" :counter="strLen"
+    @blur="OnKeywordBlur(i)"
+    :label="label" required/>
+  </v-layout>
 </template>
 
 <script>
@@ -53,6 +51,9 @@ export default {
         }
       }
       return result
+    },
+    joinedKeywords: function() {
+      return this.keywordList.map(x => x.text).filter(x => x != "").join(';')
     },
   },
   mounted() {
