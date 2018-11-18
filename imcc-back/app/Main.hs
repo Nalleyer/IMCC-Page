@@ -14,12 +14,12 @@ module Main where
 
 import            Data.Aeson                    hiding (json)
 import qualified  Data.ByteString               as B
-import            Data.Maybe                    (catMaybes)
+import            Data.Maybe                    (catMaybes, fromJust)
 import            Data.Monoid                   ((<>))
 import            Data.List.Split               (splitOn)
 import            Data.Text                     (Text, pack, unpack)
 import            Data.Time
-import            Data.HashMap.Strict           ((!))
+import qualified  Data.HashMap.Strict as HM
 import            Network.HTTP.Types.Status
 import            Network.Wai.Middleware.Static
 import            Web.Spock
@@ -72,7 +72,7 @@ main = do
   pool <- runStdoutLoggingT $ createSqlitePool "api.db" 5
   spockCfg <- defaultSpockCfg (MySession 233) (PCPool pool)()
   runStdoutLoggingT $ runSqlPool (runMigration migrateAll) pool
-  runSpock 8081 (spock spockCfg app)
+  runSpock 8080 (spock spockCfg app)
 
 app :: Api
 app = do
@@ -88,8 +88,12 @@ app = do
     liftIO $ print ps
     filter <- makeFilter ps
     papers <- runSQL $ selectList filter []
-    -- liftIO $ print papers
-    json papers
+    papers' <- forM papers $ \(Entity pId paper) -> do
+      p2ks <- runSQL $ selectList [P2KPId ==. pId] []
+      keywords <- forM p2ks $ \(Entity _ (P2K _ kId)) -> fromJust `liftM` (runSQL $ P.get kId)
+      let json' = addJsonKey "keywords" (toJSON keywords) (toJSON paper)
+      return $ addJsonKey "pId" (toJSON pId) json'
+    json papers'
   post ("api" <//> "upload") $ do
     pdfs <- files
     -- liftIO $ print pdfs
@@ -106,7 +110,7 @@ app = do
         forM_ keywords $ \k -> do
           kId <- runSQL $ insert' (UniqueKeyword k) (Keyword k)
           runSQL $ insert $ P2K pId kId
-        let pdf = pdfs ! "file"
+        let pdf = pdfs HM.! "file"
         let outPath = thesisPath </> (show (PS.fromSqlKey pId) ++ ".pdf")
         content <- liftIO $ B.readFile (uf_tempLocation pdf)
         liftIO $ B.writeFile outPath content
@@ -195,3 +199,7 @@ splitKeyWords ks = splitOn ";" ks
 
 utctGregorian time = toGregorian $ utctDay time
 utctYear time = let (year, _, _) = utctGregorian time in year
+
+addJsonKey :: Text -> Value -> Value -> Value
+addJsonKey key val (Object xs) = Object $ HM.insert key val xs
+addJsonKey _ _ xs = xs

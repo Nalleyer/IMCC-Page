@@ -20,6 +20,16 @@
           </v-form>
       </v-flex>
     </v-card>
+
+    <!-- paper list -->
+    <v-card v-for="(paper, i) in papers">
+      <h2>{{paper.title}}</h2>
+      <v-layout>
+        <h3>{{paper.auther}}</h3>
+        <h3>{{paper.year}}-{{paper.month}}-{{paper.day}}</h3>
+        <h3 v-for="(k, i) in paper.keywords">{{k.name}}</h3>
+      </v-layout>
+    </v-card>
   </v-container>
 </template>
 
@@ -44,6 +54,7 @@ export default {
           v => v.length <= this.autherLen || '作者名最多10字',
         ],
         keywords : [],
+        papers: [],
     }
   },
   mounted() {
@@ -62,7 +73,8 @@ export default {
           params: option,
         }).then(
           (res) => {
-            console.log(res)
+            this.papers = res.body;
+            console.log(this.papers)
           },
           (res) => {
             console.log(res)
