@@ -66,13 +66,19 @@ P2K json
   kId KeywordId
 |]
 
+-- getter
+getKeyword (Keyword k) = k
+getCategoryIdFromPaper (Paper _ _ _ _ _ _ cId) = cId
+getCategoryName (Category name) = name
+
 main :: IO ()
 main = do
   createDirectoryIfMissing True thesisPath
   pool <- runStdoutLoggingT $ createSqlitePool "api.db" 5
   spockCfg <- defaultSpockCfg (MySession 233) (PCPool pool)()
   runStdoutLoggingT $ runSqlPool (runMigration migrateAll) pool
-  runSpock 8080 (spock spockCfg app)
+  runSpock 8082 (spock spockCfg app)
+
 
 app :: Api
 app = do
@@ -90,9 +96,12 @@ app = do
     papers <- runSQL $ selectList filter []
     papers' <- forM papers $ \(Entity pId paper) -> do
       p2ks <- runSQL $ selectList [P2KPId ==. pId] []
-      keywords <- forM p2ks $ \(Entity _ (P2K _ kId)) -> fromJust `liftM` (runSQL $ P.get kId)
-      let json' = addJsonKey "keywords" (toJSON keywords) (toJSON paper)
-      return $ addJsonKey "pId" (toJSON pId) json'
+      categoryName <- fromJust `liftM` runSQL (P.get (getCategoryIdFromPaper paper))
+      keywords <- forM p2ks $ \(Entity _ (P2K _ kId)) -> fromJust `liftM` runSQL (P.get kId)
+      let keywords' = map getKeyword keywords
+      let json' = addJsonKey "keywords" (toJSON keywords') (toJSON paper)
+      let json'' = addJsonKey "pId" (toJSON pId) json'
+      return $ addJsonKey "categoryName" (toJSON $ getCategoryName categoryName) json''
     json papers'
   post ("api" <//> "upload") $ do
     pdfs <- files
@@ -106,7 +115,7 @@ app = do
         zonedTime <- liftIO getZonedTime
         let (year, month, day) = utctGregorian (zonedTimeToUTC zonedTime)
         let paper = Paper title auther (fromInteger year) month day abstract cId
-        pId <- runSQL $ insert $ paper
+        pId <- runSQL $ insert paper
         forM_ keywords $ \k -> do
           kId <- runSQL $ insert' (UniqueKeyword k) (Keyword k)
           runSQL $ insert $ P2K pId kId
@@ -148,9 +157,9 @@ getKey uniqueField = do
 
 makeFilter ps = do
   filterList <- forM ps makeAFilter
-  return $ foldr (++) [] filterList
+  return $ concat filterList
     where
-      makeAFilter ("year", value) = return [PaperYear ==. (read $ unpack value)]
+      makeAFilter ("year", value) = return [PaperYear ==. read (unpack value)]
       makeAFilter ("auther", value) = return [PaperAuther ==. value]
       makeAFilter ("category", value) = do
         mCKey <- runSQL $ getKey (UniqueCategory value)
@@ -159,7 +168,7 @@ makeFilter ps = do
           Nothing -> return []
       makeAFilter ("keywords", keywords) = do
         let splited = splitKeyWords $ unpack keywords
-        kids <- catMaybes `liftM` (forM splited $ \k -> runSQL $ getKey (UniqueKeyword $ pack k))
+        kids <- catMaybes `liftM` forM splited (\k -> runSQL $ getKey (UniqueKeyword $ pack k))
         k2ps <- runSQL $ selectList [P2KKId <-. kids] []
         let pids = map (\(Entity key (P2K pId kId)) -> pId) k2ps
         return [PaperId <-. pids]
