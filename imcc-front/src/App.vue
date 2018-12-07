@@ -18,8 +18,6 @@ export default {
     mheader
   },
   mounted() {
-    this.$router.afterEach((to, from, next) => {
-    })
   },
   data () {
     return {
