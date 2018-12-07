@@ -143,7 +143,6 @@ export default {
   },
   methods: {
     OnFooterBtnClick(icon) {
-      console.log(icon.link)
     }
   },
   components: {

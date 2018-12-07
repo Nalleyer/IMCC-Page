@@ -91,20 +91,18 @@ export default {
   },
   methods: {
     OnFileChanged(file) {
-      console.log(file)
       this.fileInfo = file
     },
     submit() {
       let ok = this.$refs.form.validate() && this.fileOk
       if (!ok) {
-        console.log("no")
         return
       }
       let formData = new FormData()
       formData.append("title", this.title)
       formData.append("auther", this.auther)
       formData.append("abstract", this.abstract)
-      formData.append("keywords", this.$refs.keywords.splitKeyWords)
+      formData.append("keywords", this.$refs.keywords.joinedKeywords)
       formData.append("file", this.fileInfo)
       formData.append("category", this.category.name)
       this.$http.post('/api/upload', formData, {

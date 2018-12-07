@@ -77,7 +77,7 @@ main = do
   pool <- runStdoutLoggingT $ createSqlitePool "api.db" 5
   spockCfg <- defaultSpockCfg (MySession 233) (PCPool pool)()
   runStdoutLoggingT $ runSqlPool (runMigration migrateAll) pool
-  runSpock 8082 (spock spockCfg app)
+  runSpock 8085 (spock spockCfg app)
 
 
 app :: Api
@@ -89,9 +89,19 @@ app = do
     pdf <- liftIO $ B.readFile "Thesis.pdf"
     setHeader "Content-Type" "application/pdf"
     bytes pdf
+  get ("api" <//> "download" <//> var) $ \pId -> do
+    let path = makeFilePath pId
+    e <- liftIO $ doesFileExist path
+    if e
+      then do
+        content <- liftIO $ B.readFile path
+        bytes content
+      else
+        errorJson 4 "file not found"
+
   get ("api" <//> "list") $ do
     ps <- params
-    liftIO $ print ps
+    -- liftIO $ print ps
     filter <- makeFilter ps
     papers <- runSQL $ selectList filter []
     papers' <- forM papers $ \(Entity pId paper) -> do
@@ -105,7 +115,6 @@ app = do
     json papers'
   post ("api" <//> "upload") $ do
     pdfs <- files
-    -- liftIO $ print pdfs
     ps <- params
     case parseUploadPs ps of
       Just (title, abstract, auther, keywordsStr, categoryStr) -> do
@@ -120,7 +129,7 @@ app = do
           kId <- runSQL $ insert' (UniqueKeyword k) (Keyword k)
           runSQL $ insert $ P2K pId kId
         let pdf = pdfs HM.! "file"
-        let outPath = thesisPath </> (show (PS.fromSqlKey pId) ++ ".pdf")
+        let outPath = makeFilePath (show $ PS.fromSqlKey pId)
         content <- liftIO $ B.readFile (uf_tempLocation pdf)
         liftIO $ B.writeFile outPath content
         succJson $ pack $ show pId
@@ -186,6 +195,9 @@ parseUploadPs ps =
       (Just title, Just abstract, Just auther, Just keywordsStr, Just categoryStr)
         -> Just (title, abstract, auther, keywordsStr, categoryStr)
       _ -> Nothing
+
+makeFilePath :: String -> String
+makeFilePath pId = thesisPath </> (pId ++ ".pdf")
 
 errorJson :: Int -> Text -> ApiAction ()
 errorJson code message = json $ object

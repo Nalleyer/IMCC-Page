@@ -19,7 +19,6 @@ export default {
   },
   mounted() {
     this.$router.afterEach((to, from, next) => {
-      console.log(this.$route.path)
     })
   },
   data () {

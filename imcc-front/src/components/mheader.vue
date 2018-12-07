@@ -64,9 +64,6 @@ export default {
       return this.offsetTop < 1
     },
     isMainPage: function() {
-      // console.log(this.$route.path);
-      // console.log(this.items[0].router);
-      console.log(this.$route.path == this.items[0].router);
       return this.$route.path == this.items[0].router;
     }
   },

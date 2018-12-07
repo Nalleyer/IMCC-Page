@@ -42,7 +42,8 @@
                     <h4 v-if="paper.keywords.length > maxShowKeywords">...</h4>
                   </v-layout>
                 </v-flex>
-                <v-btn title="下载全文" class="mx-3 white--text" color="secondary" icon dark large @click="OnDownloadClick(paper)">
+                <v-btn title="下载全文" class="mx-3 white--text" color="secondary" icon dark large
+                :href="dlLink(paper)">
                   <v-icon size="30px">{{dlIcon}}</v-icon>
                 </v-btn>
                 <v-btn title="在线预览" class="mx-3 white--text" color="secondary" icon dark large @click="OnPreviewClick(paper)">
@@ -84,87 +85,39 @@ export default {
       maxShowKeywords: 4,
       dlIcon: 'fas fa-file-download',
       pvIcon: 'fas fa-eye',
-      // dlIcon: 'fas fa-lock',
-      // papers: [],
-      // fake
-      papers: [{
-          abstract: "abstract",
-          auther: "677",
-          categoryId: 1,
-          categoryName: "c1",
-          day: 14,
-          keywords: ['k1', 'k2', 'k3'],
-          month: 11,
-          year: 2018,
-          title: 'title is me',
-          pId: 1,
-        },
-        {
-          abstract: "abstract",
-          auther: "677",
-          categoryId: 2,
-          categoryName: "c2",
-          day: 14,
-          keywords: ['k1', 'k2', 'k3'],
-          month: 11,
-          year: 2018,
-          title: 'title is me',
-          pId: 2,
-        },
-        {
-          abstract: "abstract 3",
-          auther: "677",
-          categoryId: 3,
-          categoryName: "c3",
-          day: 14,
-          keywords: ['k1', 'k2', 'k3'],
-          month: 11,
-          year: 2018,
-          title: 'title is me 3',
-          pId: 3,
-        },
-        {
-          abstract: "abstract",
-          auther: "677",
-          categoryId: 4,
-          categoryName: "c4",
-          day: 14,
-          keywords: ['k1', 'k2', 'k3'],
-          month: 11,
-          year: 2018,
-          title: 'title is me 4',
-          pId: 4,
-        },
-      ],
+      papers: [],
     }
   },
   mounted() {
-    console.log(imccGlobal)
   },
   methods: {
     search() {
       if (this.$refs.form.validate()) {
         let option = {}
         if (this.category) {
-          console.log("ok")
           option.category = this.category.name
         }
         if (this.year) option.year = this.year
         if (this.auther) option.auther = this.auther
         if (this.$refs.keywords.joinedKeywords) option.keywords = this.$refs.keywords.joinedKeywords
-        console.log(option)
         this.$http.get('/api/list/', {
           params: option,
         }).then(
           (res) => {
             this.papers = res.body;
-            console.log(this.papers)
           },
           (res) => {
             console.log(res)
           }
         )
       }
+    },
+    OnDownloadClick(paper) {
+    },
+    OnPreviewClick(paper) {
+    },
+    dlLink(paper) {
+      return '/api/download/' + paper.pId
     }
   }
 }
